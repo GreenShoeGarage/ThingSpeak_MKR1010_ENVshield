@@ -49,7 +49,7 @@ float illuminance = 0.0;
 float uva         = 0.0;
 float uvb         = 0.0;
 float uvIndex     = 0.0;
-float soundSample   = 0.0;
+float noiseLevel   = 0.0;
 
 unsigned long lastSDWriteTime = 0;
 unsigned long SDwriteDelay = 60000;
@@ -134,7 +134,7 @@ void readSensors() {
   uva         = ENV.readUVA();
   uvb         = ENV.readUVB();
   uvIndex     = ENV.readUVIndex();
-  soundSample = getNoiseReading();
+  noiseLevel = getNoiseReading();
 }
 
 
@@ -157,8 +157,8 @@ void printTelemetry() {
   Serial.println(uvb);
   Serial.print("uvIndex: ");
   Serial.println(uvIndex);
-  Serial.print("Sound Level: ");
-  Serial.println(soundSample);
+  Serial.print("Noise Level: ");
+  Serial.println(noiseLevel);
 }
 
 
@@ -186,7 +186,7 @@ void sendToThingspeak() {
     ThingSpeak.setField(5, uva);
     ThingSpeak.setField(6, uvb);
     ThingSpeak.setField(7, uvIndex);
-    ThingSpeak.setField(8, soundSample);
+    ThingSpeak.setField(8, noiseLevel);
 
     // write to the ThingSpeak channel
     int x = ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);
@@ -223,7 +223,7 @@ void writeTelemetrySD() {
       myFile.print(",");
       myFile.print(uvIndex);
       myFile.print(",");
-      myFile.println(soundSample);
+      myFile.println(noiseLevel);
       myFile.close();
 
       Serial.println("Telemetry written to SD card.");

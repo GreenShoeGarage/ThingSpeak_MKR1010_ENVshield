@@ -120,7 +120,7 @@ void loop() {
   sendToThingspeak();
   writeTelemetrySD();
   delay(2000);
-  //LowPower.sleep(3000);
+  //LowPower.idle(3000);
 }
 
 
@@ -191,7 +191,7 @@ void sendToThingspeak() {
     // write to the ThingSpeak channel
     int x = ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);
     if (x == 200) {
-      Serial.println("Channel update successful.");
+      Serial.println("Telemetry upload to ThingSpeak successful.");
     }
     else {
       Serial.println("Problem updating channel. HTTP error code " + String(x));

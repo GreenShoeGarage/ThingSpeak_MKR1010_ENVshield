@@ -21,7 +21,7 @@
 
   Copyright 2018, The MathWorks, Inc.
 
-  Microphone Connections
+  Microphone Connections (Adafruit I2S MEMS Microphone Breakout SPH0645LM4H)
     GND connected GND
     3.3V connected 3.3V (Feather, Zero) or VCC (MKR1000, MKRZero)
     LRCLK / WS connected to pin 0 (Feather, Zero) or pin 3 (MKR1000, MKRZero)
@@ -29,6 +29,17 @@
     DOUT connected to pin 9 (Zero) or pin A6 (MKR1000, MKRZero
     SEL N/C
 
+  Adafruit PM2.5 sensor (MSA003I Air Quality Breakout (PM0.3-100um))
+    I2C address 0x12 (cannot be changed)
+    3.3V
+    SDA, SCL, 3V, GNF
+
+  SGP30 Air Quality Sensor Breakout (VOC and eCO2)
+    The sensor uses I2C address 0x58
+    Since the sensor chip uses 3 VDC for logic, we have included a voltage regulator on board that will take 3-5VDC and safely convert it down
+    SDA, SCL, 3.3V or 5V, GND
+
+   
 */
 #include <SPI.h>
 #include <SD.h>
@@ -38,6 +49,10 @@
 #include "secrets.h"
 #include <I2S.h>
 #include <ArduinoLowPower.h>
+#include "Adafruit_PM25AQI.h"
+
+
+
 
 #define SAMPLES 128
 #define CSPIN 4
@@ -50,6 +65,17 @@ float uva         = 0.0;
 float uvb         = 0.0;
 float uvIndex     = 0.0;
 float noiseLevel   = 0.0;
+int partcount_03um = 0;
+int partcount_05um = 0;
+int partcount_10um = 0;
+int partcount_25um = 0;
+int partcount_50um = 0;
+int partcount_100um = 0;
+int sensorReading_voc = 0;
+int sensorReading_co2 = 0;
+
+Adafruit_PM25AQI aqi = Adafruit_PM25AQI();
+PM25_AQI_Data aqiData;
 
 unsigned long lastSDWriteTime = 0;
 unsigned long SDwriteDelay = 60000;
@@ -67,15 +93,18 @@ const char* FILENAME = "telemetr.csv";
 File myFile;
 
 void setup() {
+  pinMode(LED_BUILTIN, OUTPUT);
   Serial.begin(115200);  // Initialize serial
   while (!Serial) {
-    ;
+    blinkLedError();
   }
 
   Serial.print("Initializing MKR ENV shield...");
   if (!ENV.begin()) {
     Serial.println("FAILED to initialize MKR ENV shield!");
-    while (true);
+    while (true) {
+      blinkLedError();
+    }
   }
   Serial.println("MKR ENV shield successfully initialized");
 
@@ -83,16 +112,28 @@ void setup() {
   Serial.print("Initializing I2S microphone...");
   if (!I2S.begin(I2S_PHILIPS_MODE, 16000, 32)) {
     Serial.println("FAILED to initialize I2S microphone!");
-    while (true); // do nothing
+    while (true) {
+      blinkLedError();
+    }
   }
   Serial.println("I2S microphone successfully initialized");
 
+
+  if (! aqi.begin_I2C()) {      // connect to the sensor over I2C
+    Serial.println("Could not find PM 2.5 sensor!");
+    while (true) {
+      blinkLedError();
+    }
+  }
+  Serial.println("PM25 sensor successfully initialized!");
 
 
   Serial.print("Initializing WiFi module...");
   if (WiFi.status() == WL_NO_MODULE) {
     Serial.println("Communication with WiFi module failed!");
-    while (true);
+    while (true) {
+      blinkLedError();
+    }
   }
   String fv = WiFi.firmwareVersion();
   Serial.print("Wifi Firmware Version: ");
@@ -104,11 +145,15 @@ void setup() {
   if (!SD.begin(CSPIN))
   {
     Serial.println("initialization failed!");
-    while (true);
+    while (true) {
+      blinkLedError();
+    }
   }
   Serial.println("SD card successfully initialized.");
 
   ThingSpeak.begin(client);  //Initialize ThingSpeak
+
+  digitalWrite(LED_BUILTIN, LOW);
 }
 
 
@@ -135,6 +180,13 @@ void readSensors() {
   uvb         = ENV.readUVB();
   uvIndex     = ENV.readUVIndex();
   noiseLevel = getNoiseReading();
+  readAQI();
+  partcount_03um = aqiData.particles_03um;
+  partcount_05um = aqiData.particles_05um;
+  partcount_10um = aqiData.particles_10um;
+  partcount_25um = aqiData.particles_25um;
+  partcount_50um = aqiData.particles_50um;
+  partcount_100um = aqiData.particles_100um;
 }
 
 
@@ -142,23 +194,64 @@ void readSensors() {
 
 
 void printTelemetry() {
+  Serial.println(F("------------------------------------------------------------"));
+  Serial.print(F("Time (ms) since last reboot: "));
   Serial.println(millis());
-  Serial.print("temperature: ");
+  Serial.println();
+
+  Serial.print(F(">> Environmental Conditions: "));
+  Serial.println();
+  Serial.print(F("Temperature (C): "));
   Serial.println(temperature);
-  Serial.print("humidity: ");
+  Serial.print(F("Humidity (%): "));
   Serial.println(humidity);
-  Serial.print("pressure: ");
+  Serial.print(F("Atmosphere Pressure (kPa): "));
   Serial.println(pressure);
-  Serial.print("illuminance: ");
+  Serial.print(F("Illuminance (Lux): "));
   Serial.println(illuminance);
-  Serial.print("uva: ");
+  Serial.print(F("UVA: "));
   Serial.println(uva);
-  Serial.print("uvb: ");
+  Serial.print(F("UVB: "));
   Serial.println(uvb);
-  Serial.print("uvIndex: ");
+  Serial.print(F("UV Index: "));
   Serial.println(uvIndex);
-  Serial.print("Noise Level: ");
+  Serial.println();
+
+  Serial.print(F(">> Noise Level: "));
   Serial.println(noiseLevel);
+  Serial.println();
+
+  Serial.println(F(">> Air Quality: Particulate Matter"));
+  Serial.println(F("Concentration Units (standard)"));
+  Serial.print(F("PM 1.0: ")); Serial.print(aqiData.pm10_standard);
+  Serial.print(F("\t\tPM 2.5: ")); Serial.print(aqiData.pm25_standard);
+  Serial.print(F("\t\tPM 10: ")); Serial.println(aqiData.pm100_standard);
+  Serial.println(F("-----"));
+  Serial.println(F("Concentration Units (environmental)"));
+  Serial.print(F("PM 1.0: ")); Serial.print(aqiData.pm10_env);
+  Serial.print(F("\t\tPM 2.5: ")); Serial.print(aqiData.pm25_env);
+  Serial.print(F("\t\tPM 10: ")); Serial.println(aqiData.pm100_env);
+  Serial.println(F("-----"));
+  Serial.print(F("Particles > 0.3um / 0.1L air:")); Serial.println(partcount_03um);
+  Serial.print(F("Particles > 0.5um / 0.1L air:")); Serial.println(partcount_05um);
+  Serial.print(F("Particles > 1.0um / 0.1L air:")); Serial.println(partcount_10um);
+  Serial.print(F("Particles > 2.5um / 0.1L air:")); Serial.println(partcount_25um);
+  Serial.print(F("Particles > 5.0um / 0.1L air:")); Serial.println(partcount_50um);
+  Serial.println(F("Particles > 50 um / 0.1L air:")); Serial.println(partcount_100um);
+  Serial.println();
+
+  Serial.println(F(">> Air Quality: CO2 and VOC"));
+  Serial.print(F("CO2: "));
+  Serial.println(sensorReading_co2);
+  Serial.print(F("VOC: "));
+  Serial.println(sensorReading_voc);
+  Serial.println();
+  Serial.println(F("------------------------------------------------------------"));
+  
+  for (int x = 0; x < 3; x++) {
+    Serial.println();
+  }
+
 }
 
 
@@ -183,10 +276,9 @@ void sendToThingspeak() {
     ThingSpeak.setField(2, humidity);
     ThingSpeak.setField(3, pressure);
     ThingSpeak.setField(4, illuminance);
-    ThingSpeak.setField(5, uva);
-    ThingSpeak.setField(6, uvb);
-    ThingSpeak.setField(7, uvIndex);
-    ThingSpeak.setField(8, noiseLevel);
+    ThingSpeak.setField(5, uvIndex);
+    ThingSpeak.setField(6, noiseLevel);
+    ThingSpeak.setField(7, partcount_25um);
 
     // write to the ThingSpeak channel
     int x = ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);
@@ -224,13 +316,25 @@ void writeTelemetrySD() {
       myFile.print(uvIndex);
       myFile.print(",");
       myFile.println(noiseLevel);
+      myFile.print(",");
+      myFile.println(partcount_03um);
+      myFile.print(",");
+      myFile.println(partcount_05um);
+      myFile.print(",");
+      myFile.println(partcount_10um);
+      myFile.print(",");
+      myFile.println(partcount_25um);
+      myFile.print(",");
+      myFile.println(partcount_50um);
+      myFile.print(",");
+      myFile.println(partcount_100um);
       myFile.close();
 
-      Serial.println("Telemetry written to SD card.");
+      Serial.println("Telemetry write to SD card is successful.");
       lastSDWriteTime = millis();
     }
     else {
-      Serial.print("WARNING! Error opening file: ");
+      Serial.print("WARNING! SD Card problem. Error opening file: ");
       Serial.println(FILENAME);
     }
 
@@ -276,4 +380,22 @@ float getNoiseReading() {
   }
   float noiseLevel = maxsample - minsample;
   return noiseLevel;
+}
+
+
+void readAQI() {
+  if (! aqi.read(&aqiData)) {
+    Serial.println("Could not read from AQI");
+    delay(500);  // try again in a bit!
+    return;
+  }
+  //Serial.println("AQI reading success");
+}
+
+
+void blinkLedError() {
+  digitalWrite(LED_BUILTIN, HIGH);
+  delay(1000);
+  digitalWrite(LED_BUILTIN, LOW);
+  delay(1000);
 }

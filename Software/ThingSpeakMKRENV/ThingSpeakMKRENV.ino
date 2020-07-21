@@ -39,7 +39,7 @@
     Since the sensor chip uses 3 VDC for logic, we have included a voltage regulator on board that will take 3-5VDC and safely convert it down
     SDA, SCL, 3.3V or 5V, GND
 
-   
+
 */
 #include <SPI.h>
 #include <SD.h>
@@ -50,12 +50,17 @@
 #include <I2S.h>
 #include <ArduinoLowPower.h>
 #include "Adafruit_PM25AQI.h"
+#include <utility/wifi_drv.h>
 
 
 
 
 #define SAMPLES 128
 #define CSPIN 4
+#define GREEN_LED 25
+#define RED_LED 26
+#define BLUE_LED 27
+
 
 float temperature = 0.0;
 float humidity    = 0.0;
@@ -93,7 +98,6 @@ const char* FILENAME = "telemetr.csv";
 File myFile;
 
 void setup() {
-  pinMode(LED_BUILTIN, OUTPUT);
   Serial.begin(115200);  // Initialize serial
   while (!Serial) {
     blinkLedError();
@@ -153,7 +157,12 @@ void setup() {
 
   ThingSpeak.begin(client);  //Initialize ThingSpeak
 
-  digitalWrite(LED_BUILTIN, LOW);
+  WiFiDrv::pinMode(GREEN_LED, OUTPUT);  //GREEN
+  WiFiDrv::pinMode(RED_LED, OUTPUT);  //RED
+  WiFiDrv::pinMode(BLUE_LED, OUTPUT);  //BLUE
+  WiFiDrv::digitalWrite(GREEN_LED, HIGH); // for full brightness
+  WiFiDrv::digitalWrite(RED_LED, LOW); // for full brightness
+  WiFiDrv::digitalWrite(BLUE_LED, LOW); // for full brightness
 }
 
 
@@ -247,7 +256,7 @@ void printTelemetry() {
   Serial.println(sensorReading_voc);
   Serial.println();
   Serial.println(F("------------------------------------------------------------"));
-  
+
   for (int x = 0; x < 3; x++) {
     Serial.println();
   }
@@ -394,8 +403,12 @@ void readAQI() {
 
 
 void blinkLedError() {
-  digitalWrite(LED_BUILTIN, HIGH);
+  WiFiDrv::digitalWrite(GREEN_LED, LOW); // for full brightness
+  WiFiDrv::digitalWrite(RED_LED, LOW); // for full brightness
+  WiFiDrv::digitalWrite(BLUE_LED, HIGH); // for full brightness
   delay(1000);
-  digitalWrite(LED_BUILTIN, LOW);
+  WiFiDrv::digitalWrite(GREEN_LED, LOW); // for full brightness
+  WiFiDrv::digitalWrite(RED_LED, HIGH); // for full brightness
+  WiFiDrv::digitalWrite(BLUE_LED, LOW); // for full brightness
   delay(1000);
 }

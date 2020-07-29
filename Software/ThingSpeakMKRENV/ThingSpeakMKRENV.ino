@@ -34,7 +34,7 @@
     3.3V
     SDA, SCL, 3V, GNF
 
-  SGP30 Air Quality Sensor Breakout (VOC and eCO2)
+  SGP30 Air Quality Sensor Breakout (TVOC and eCO2)
     The sensor uses I2C address 0x58
     Since the sensor chip uses 3 VDC for logic, we have included a voltage regulator on board that will take 3-5VDC and safely convert it down
     SDA, SCL, 3.3V or 5V, GND
@@ -51,7 +51,7 @@
 #include <ArduinoLowPower.h>
 #include "Adafruit_PM25AQI.h"
 #include <utility/wifi_drv.h>
-
+#include "Adafruit_SGP30.h"
 
 
 
@@ -76,11 +76,13 @@ int partcount_10um = 0;
 int partcount_25um = 0;
 int partcount_50um = 0;
 int partcount_100um = 0;
-int sensorReading_voc = 0;
-int sensorReading_co2 = 0;
+int sensorReading_tvoc = 0;
+int sensorReading_eco2 = 0;
 
 Adafruit_PM25AQI aqi = Adafruit_PM25AQI();
 PM25_AQI_Data aqiData;
+
+Adafruit_SGP30 sgp;
 
 unsigned long lastSDWriteTime = 0;
 unsigned long SDwriteDelay = 60000;
@@ -123,13 +125,22 @@ void setup() {
   Serial.println("I2S microphone successfully initialized");
 
 
+  Serial.print("Initializing PM 2.5 AQI Sensor...");
   if (! aqi.begin_I2C()) {      // connect to the sensor over I2C
     Serial.println("Could not find PM 2.5 sensor!");
     while (true) {
       blinkLedError();
     }
   }
-  Serial.println("PM25 sensor successfully initialized!");
+  Serial.println("PM 2.5 AQI sensor successfully initialized!");
+
+
+  Serial.print("Initializing SGP30 sensor...");
+  if (! sgp.begin()) {
+    Serial.println("Sensor not found :(");
+    while (1);
+  }
+  Serial.println("SGP30 sensor successfully initialized!");
 
 
   Serial.print("Initializing WiFi module...");
@@ -196,6 +207,8 @@ void readSensors() {
   partcount_25um = aqiData.particles_25um;
   partcount_50um = aqiData.particles_50um;
   partcount_100um = aqiData.particles_100um;
+  sensorReading_tvoc = sgp.TVOC;
+  sensorReading_eco2 = sgp.eCO2;
 }
 
 
@@ -246,14 +259,14 @@ void printTelemetry() {
   Serial.print(F("Particles > 1.0um / 0.1L air:")); Serial.println(partcount_10um);
   Serial.print(F("Particles > 2.5um / 0.1L air:")); Serial.println(partcount_25um);
   Serial.print(F("Particles > 5.0um / 0.1L air:")); Serial.println(partcount_50um);
-  Serial.println(F("Particles > 50 um / 0.1L air:")); Serial.println(partcount_100um);
+  Serial.print(F("Particles > 50 um / 0.1L air:")); Serial.println(partcount_100um);
   Serial.println();
 
-  Serial.println(F(">> Air Quality: CO2 and VOC"));
-  Serial.print(F("CO2: "));
-  Serial.println(sensorReading_co2);
-  Serial.print(F("VOC: "));
-  Serial.println(sensorReading_voc);
+  Serial.println(F(">> Air Quality: eCO2 and TVOC"));
+  Serial.print(F("eCO2: "));
+  Serial.println(sensorReading_eco2);
+  Serial.print(F("TVOC: "));
+  Serial.println(sensorReading_tvoc);
   Serial.println();
   Serial.println(F("------------------------------------------------------------"));
 
@@ -288,6 +301,7 @@ void sendToThingspeak() {
     ThingSpeak.setField(5, uvIndex);
     ThingSpeak.setField(6, noiseLevel);
     ThingSpeak.setField(7, partcount_25um);
+    ThingSpeak.setField(8, sensorReading_eco2);
 
     // write to the ThingSpeak channel
     int x = ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);
@@ -337,6 +351,10 @@ void writeTelemetrySD() {
       myFile.println(partcount_50um);
       myFile.print(",");
       myFile.println(partcount_100um);
+      myFile.print(",");
+      myFile.println(sensorReading_eco2);
+      myFile.print(",");
+      myFile.println(sensorReading_tvoc);
       myFile.close();
 
       Serial.println("Telemetry write to SD card is successful.");

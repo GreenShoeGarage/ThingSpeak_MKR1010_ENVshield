@@ -76,8 +76,8 @@ int partcount_10um = 0;
 int partcount_25um = 0;
 int partcount_50um = 0;
 int partcount_100um = 0;
-int sensorReading_tvoc = 0;
-int sensorReading_eco2 = 0;
+uint16_t sensorReading_tvoc = 0;
+uint16_t sensorReading_eco2 = 0;
 
 Adafruit_PM25AQI aqi = Adafruit_PM25AQI();
 PM25_AQI_Data aqiData;
@@ -192,23 +192,10 @@ void loop() {
 
 
 void readSensors() {
-  temperature = ENV.readTemperature();
-  humidity    = ENV.readHumidity();
-  pressure    = ENV.readPressure();
-  illuminance = ENV.readIlluminance();
-  uva         = ENV.readUVA();
-  uvb         = ENV.readUVB();
-  uvIndex     = ENV.readUVIndex();
+  readMKR();
   noiseLevel = getNoiseReading();
   readAQI();
-  partcount_03um = aqiData.particles_03um;
-  partcount_05um = aqiData.particles_05um;
-  partcount_10um = aqiData.particles_10um;
-  partcount_25um = aqiData.particles_25um;
-  partcount_50um = aqiData.particles_50um;
-  partcount_100um = aqiData.particles_100um;
-  sensorReading_tvoc = sgp.TVOC;
-  sensorReading_eco2 = sgp.eCO2;
+  readSGP();
 }
 
 
@@ -417,6 +404,13 @@ void readAQI() {
     return;
   }
   //Serial.println("AQI reading success");
+
+  partcount_03um = aqiData.particles_03um;
+  partcount_05um = aqiData.particles_05um;
+  partcount_10um = aqiData.particles_10um;
+  partcount_25um = aqiData.particles_25um;
+  partcount_50um = aqiData.particles_50um;
+  partcount_100um = aqiData.particles_100um;
 }
 
 
@@ -429,4 +423,55 @@ void blinkLedError() {
   WiFiDrv::digitalWrite(RED_LED, HIGH); // for full brightness
   WiFiDrv::digitalWrite(BLUE_LED, LOW); // for full brightness
   delay(1000);
+}
+
+
+void readSGP() {
+  static int counter = 0;
+
+  if (! sgp.IAQmeasure()) {
+    Serial.println("Measurement failed");
+    return;
+  }
+  //Serial.print("TVOC "); Serial.print(sgp.TVOC); Serial.print(" ppb\t");
+  //Serial.print("eCO2 "); Serial.print(sgp.eCO2); Serial.println(" ppm");
+
+  if (! sgp.IAQmeasureRaw()) {
+    Serial.println("Raw Measurement failed");
+    return;
+  }
+  //Serial.print("Raw H2 "); Serial.print(sgp.rawH2); Serial.print(" \t");
+  //Serial.print("Raw Ethanol "); Serial.print(sgp.rawEthanol); Serial.println("");
+
+  delay(1000);
+
+  counter++;
+  if (counter == 30) {
+    counter = 0;
+
+    uint16_t TVOC_base, eCO2_base;
+    if (! sgp.getIAQBaseline(&eCO2_base, &TVOC_base)) {
+      Serial.println("Failed to get baseline readings");
+      return;
+    }
+    //Serial.print("****Baseline values: eCO2: 0x"); Serial.print(eCO2_base, HEX);
+    //Serial.print(" & TVOC: 0x"); Serial.println(TVOC_base, HEX);
+  }
+
+  sensorReading_tvoc = sgp.TVOC;
+  sensorReading_eco2 = sgp.eCO2;
+
+}
+
+
+
+
+void readMKR() {
+  temperature = ENV.readTemperature();
+  humidity    = ENV.readHumidity();
+  pressure    = ENV.readPressure();
+  illuminance = ENV.readIlluminance();
+  uva         = ENV.readUVA();
+  uvb         = ENV.readUVB();
+  uvIndex     = ENV.readUVIndex();
 }

@@ -39,7 +39,7 @@
     Since the sensor chip uses 3 VDC for logic, we have included a voltage regulator on board that will take 3-5VDC and safely convert it down
     SDA, SCL, 3.3V or 5V, GND
 
-test
+test2
 */
 #include <SPI.h>
 #include <SD.h>

@@ -4,3 +4,4 @@ Software/ThingSpeakMKRENV/.vscode/c_cpp_properties.json
 Software/ThingSpeakMKRENV/.vscode/arduino.json
 Software/ThingSpeakMKRENV/ThingSpeakMKRENV.arduino.samd.mkrwifi1010.elf
 Software/ThingSpeakMKRENV/ThingSpeakMKRENV.arduino.samd.mkrwifi1010.bin
+.vscode/c_cpp_properties.json

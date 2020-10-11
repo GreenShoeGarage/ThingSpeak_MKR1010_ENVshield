@@ -32,14 +32,13 @@
   Adafruit PM2.5 sensor (MSA003I Air Quality Breakout (PM0.3-100um))
     I2C address 0x12 (cannot be changed)
     3.3V
-    SDA, SCL, 3V, GNF
+    SDA, SCL, 3V, GND
 
   SGP30 Air Quality Sensor Breakout (TVOC and eCO2)
     The sensor uses I2C address 0x58
     Since the sensor chip uses 3 VDC for logic, we have included a voltage regulator on board that will take 3-5VDC and safely convert it down
     SDA, SCL, 3.3V or 5V, GND
 
-test2
 */
 #include <SPI.h>
 #include <SD.h>
@@ -52,7 +51,6 @@ test2
 #include "Adafruit_PM25AQI.h"
 #include <utility/wifi_drv.h>
 #include "Adafruit_SGP30.h"
-
 
 
 #define SAMPLES 128

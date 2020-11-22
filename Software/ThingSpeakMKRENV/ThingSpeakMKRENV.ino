@@ -40,17 +40,19 @@
     SDA, SCL, 3.3V or 5V, GND
 
 */
+
 #include <SPI.h>
 #include <SD.h>
-#include "ThingSpeak.h"
 #include <WiFiNINA.h>
 #include <Arduino_MKRENV.h>
-#include "secrets.h"
 #include <I2S.h>
 #include <ArduinoLowPower.h>
+#include "ThingSpeak.h"
+#include "secrets.h"
 #include "Adafruit_PM25AQI.h"
 #include <utility/wifi_drv.h>
 #include "Adafruit_SGP30.h"
+
 
 
 #define SAMPLES 128
@@ -60,22 +62,24 @@
 #define BLUE_LED 27
 
 
-float temperature = 0.0;
-float humidity    = 0.0;
-float pressure    = 0.0;
-float illuminance = 0.0;
-float uva         = 0.0;
-float uvb         = 0.0;
-float uvIndex     = 0.0;
-float noiseLevel   = 0.0;
-int partcount_03um = 0;
-int partcount_05um = 0;
-int partcount_10um = 0;
-int partcount_25um = 0;
-int partcount_50um = 0;
-int partcount_100um = 0;
-uint16_t sensorReading_tvoc = 0;
-uint16_t sensorReading_eco2 = 0;
+float sensor_temperature_reading = 0.0;
+float sensor_humidity_reading    = 0.0;
+float sensor_pressure_reading    = 0.0;
+float sensor_illuminance_reading = 0.0;
+float sensor_uva_reading         = 0.0;
+float sensor_uvb_reading         = 0.0;
+float sensor_uvIndex_reading     = 0.0;
+float sensor_noiseLevel_reading  = 0.0;
+
+int sensor_partcount_03um_reading  = 0;
+int sensor_partcount_05um_reading  = 0;
+int sensor_partcount_10um_reading  = 0;
+int sensor_partcount_25um_reading  = 0;
+int sensor_partcount_50um_reading  = 0;
+int sensor_partcount_100um_reading = 0;
+
+uint16_t sensor_tvoc_reading = 0;
+uint16_t sensor_eco2_reading = 0;
 
 Adafruit_PM25AQI aqi = Adafruit_PM25AQI();
 PM25_AQI_Data aqiData;
@@ -83,9 +87,10 @@ PM25_AQI_Data aqiData;
 Adafruit_SGP30 sgp;
 
 unsigned long lastSDWriteTime = 0;
-unsigned long SDwriteDelay = 60000;
+const unsigned long SDwriteDelay = 60000;
+
 unsigned long lastTransmitTime = 0;
-unsigned long transmitDelay = 60000;
+const unsigned long transmitDelay = 60000;
 
 char ssid[] = SECRET_SSID;   // your network SSID (name)
 char pass[] = SECRET_PASS;   // your network password
@@ -97,6 +102,12 @@ const char * myWriteAPIKey = SECRET_WRITE_APIKEY;
 const char* FILENAME = "telemetr.csv";
 File myFile;
 
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////
 void setup() {
   Serial.begin(115200);  // Initialize serial
   while (!Serial) {
@@ -177,187 +188,44 @@ void setup() {
 
 
 
+///////////////////////////////////////////////////////////////////////////////////////////////
 void loop() {
   readSensors();
   printTelemetry();
   sendToThingspeak();
   writeTelemetrySD();
   delay(2000);
-  //LowPower.idle(3000);
 }
 
 
 
 
+///////////////////////////////////////////////////////////////////////////////////////////////
 void readSensors() {
   readMKR();
-  noiseLevel = getNoiseReading();
+  readNoiseSensor();
   readAQI();
   readSGP();
 }
 
 
 
-
-
-void printTelemetry() {
-  Serial.println(F("------------------------------------------------------------"));
-  Serial.print(F("Time (ms) since last reboot: "));
-  Serial.println(millis());
-  Serial.println();
-
-  Serial.print(F(">> Environmental Conditions: "));
-  Serial.println();
-  Serial.print(F("Temperature (C): "));
-  Serial.println(temperature);
-  Serial.print(F("Humidity (%): "));
-  Serial.println(humidity);
-  Serial.print(F("Atmosphere Pressure (kPa): "));
-  Serial.println(pressure);
-  Serial.print(F("Illuminance (Lux): "));
-  Serial.println(illuminance);
-  Serial.print(F("UVA: "));
-  Serial.println(uva);
-  Serial.print(F("UVB: "));
-  Serial.println(uvb);
-  Serial.print(F("UV Index: "));
-  Serial.println(uvIndex);
-  Serial.println();
-
-  Serial.print(F(">> Noise Level: "));
-  Serial.println(noiseLevel);
-  Serial.println();
-
-  Serial.println(F(">> Air Quality: Particulate Matter"));
-  Serial.println(F("Concentration Units (standard)"));
-  Serial.print(F("PM 1.0: ")); Serial.print(aqiData.pm10_standard);
-  Serial.print(F("\t\tPM 2.5: ")); Serial.print(aqiData.pm25_standard);
-  Serial.print(F("\t\tPM 10: ")); Serial.println(aqiData.pm100_standard);
-  Serial.println(F("-----"));
-  Serial.println(F("Concentration Units (environmental)"));
-  Serial.print(F("PM 1.0: ")); Serial.print(aqiData.pm10_env);
-  Serial.print(F("\t\tPM 2.5: ")); Serial.print(aqiData.pm25_env);
-  Serial.print(F("\t\tPM 10: ")); Serial.println(aqiData.pm100_env);
-  Serial.println(F("-----"));
-  Serial.print(F("Particles > 0.3um / 0.1L air:")); Serial.println(partcount_03um);
-  Serial.print(F("Particles > 0.5um / 0.1L air:")); Serial.println(partcount_05um);
-  Serial.print(F("Particles > 1.0um / 0.1L air:")); Serial.println(partcount_10um);
-  Serial.print(F("Particles > 2.5um / 0.1L air:")); Serial.println(partcount_25um);
-  Serial.print(F("Particles > 5.0um / 0.1L air:")); Serial.println(partcount_50um);
-  Serial.print(F("Particles > 50 um / 0.1L air:")); Serial.println(partcount_100um);
-  Serial.println();
-
-  Serial.println(F(">> Air Quality: eCO2 and TVOC"));
-  Serial.print(F("eCO2: "));
-  Serial.println(sensorReading_eco2);
-  Serial.print(F("TVOC: "));
-  Serial.println(sensorReading_tvoc);
-  Serial.println();
-  Serial.println(F("------------------------------------------------------------"));
-
-  for (int x = 0; x < 3; x++) {
-    Serial.println();
-  }
-
+///////////////////////////////////////////////////////////////////////////////////////////////
+void readMKR() {
+  sensor_temperature_reading = ENV.readTemperature();
+  sensor_humidity_reading    = ENV.readHumidity();
+  sensor_pressure_reading    = ENV.readPressure();
+  sensor_illuminance_reading = ENV.readIlluminance();
+  sensor_uva_reading         = ENV.readUVA();
+  sensor_uvb_reading         = ENV.readUVB();
+  sensor_uvIndex_reading     = ENV.readUVIndex();
 }
 
 
 
 
-void sendToThingspeak() {
-  // Connect or reconnect to WiFi
-  if ((millis() - lastTransmitTime) > transmitDelay) {
-    if (WiFi.status() != WL_CONNECTED) {
-      Serial.print("Attempting to connect to SSID: ");
-      Serial.println(SECRET_SSID);
-      while (WiFi.status() != WL_CONNECTED) {
-        WiFi.begin(ssid, pass); // Connect to WPA/WPA2 network. Change this line if using open or WEP network
-        Serial.print(".");
-        delay(5000);
-      }
-      Serial.println("\nConnected.");
-    }
-
-    // set the fields with the values
-    ThingSpeak.setField(1, temperature);
-    ThingSpeak.setField(2, humidity);
-    ThingSpeak.setField(3, pressure);
-    ThingSpeak.setField(4, illuminance);
-    ThingSpeak.setField(5, uvIndex);
-    ThingSpeak.setField(6, noiseLevel);
-    ThingSpeak.setField(7, partcount_25um);
-    ThingSpeak.setField(8, sensorReading_eco2);
-
-    // write to the ThingSpeak channel
-    int x = ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);
-    if (x == 200) {
-      Serial.println("Telemetry upload to ThingSpeak successful.");
-    }
-    else {
-      Serial.println("Problem updating channel. HTTP error code " + String(x));
-    }
-    lastTransmitTime = millis();
-  }
-}
-
-
-
-
-void writeTelemetrySD() {
-  noInterrupts();
-  if ((millis() - lastSDWriteTime) > SDwriteDelay) {
-    myFile = SD.open(FILENAME, FILE_WRITE);
-    if (myFile)
-    {
-      myFile.print(temperature);
-      myFile.print(",");
-      myFile.print(humidity);
-      myFile.print(",");
-      myFile.print(pressure);
-      myFile.print(",");
-      myFile.print(illuminance);
-      myFile.print(",");
-      myFile.print(uva);
-      myFile.print(",");
-      myFile.print(uvb);
-      myFile.print(",");
-      myFile.print(uvIndex);
-      myFile.print(",");
-      myFile.println(noiseLevel);
-      myFile.print(",");
-      myFile.println(partcount_03um);
-      myFile.print(",");
-      myFile.println(partcount_05um);
-      myFile.print(",");
-      myFile.println(partcount_10um);
-      myFile.print(",");
-      myFile.println(partcount_25um);
-      myFile.print(",");
-      myFile.println(partcount_50um);
-      myFile.print(",");
-      myFile.println(partcount_100um);
-      myFile.print(",");
-      myFile.println(sensorReading_eco2);
-      myFile.print(",");
-      myFile.println(sensorReading_tvoc);
-      myFile.close();
-
-      Serial.println("Telemetry write to SD card is successful.");
-      lastSDWriteTime = millis();
-    }
-    else {
-      Serial.print("WARNING! SD Card problem. Error opening file: ");
-      Serial.println(FILENAME);
-    }
-
-
-  }
-  interrupts();
-}
-
-
-
-float getNoiseReading() {
+///////////////////////////////////////////////////////////////////////////////////////////////
+void readNoiseSensor() {
   int samples[SAMPLES];
 
   for (int i = 0; i < SAMPLES; i++) {
@@ -390,11 +258,14 @@ float getNoiseReading() {
     minsample = min(minsample, samples[i]);
     maxsample = max(maxsample, samples[i]);
   }
-  float noiseLevel = maxsample - minsample;
-  return noiseLevel;
+  sensor_noiseLevel_reading = maxsample - minsample;
 }
 
 
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////
 void readAQI() {
   if (! aqi.read(&aqiData)) {
     Serial.println("Could not read from AQI");
@@ -403,27 +274,19 @@ void readAQI() {
   }
   //Serial.println("AQI reading success");
 
-  partcount_03um = aqiData.particles_03um;
-  partcount_05um = aqiData.particles_05um;
-  partcount_10um = aqiData.particles_10um;
-  partcount_25um = aqiData.particles_25um;
-  partcount_50um = aqiData.particles_50um;
-  partcount_100um = aqiData.particles_100um;
+  sensor_partcount_03um_reading = aqiData.particles_03um;
+  sensor_partcount_05um_reading = aqiData.particles_05um;
+  sensor_partcount_10um_reading = aqiData.particles_10um;
+  sensor_partcount_25um_reading = aqiData.particles_25um;
+  sensor_partcount_50um_reading = aqiData.particles_50um;
+  sensor_partcount_100um_reading = aqiData.particles_100um;
 }
 
 
-void blinkLedError() {
-  WiFiDrv::digitalWrite(GREEN_LED, LOW); // for full brightness
-  WiFiDrv::digitalWrite(RED_LED, LOW); // for full brightness
-  WiFiDrv::digitalWrite(BLUE_LED, HIGH); // for full brightness
-  delay(1000);
-  WiFiDrv::digitalWrite(GREEN_LED, LOW); // for full brightness
-  WiFiDrv::digitalWrite(RED_LED, HIGH); // for full brightness
-  WiFiDrv::digitalWrite(BLUE_LED, LOW); // for full brightness
-  delay(1000);
-}
 
 
+
+///////////////////////////////////////////////////////////////////////////////////////////////
 void readSGP() {
   static int counter = 0;
 
@@ -456,20 +319,189 @@ void readSGP() {
     //Serial.print(" & TVOC: 0x"); Serial.println(TVOC_base, HEX);
   }
 
-  sensorReading_tvoc = sgp.TVOC;
-  sensorReading_eco2 = sgp.eCO2;
+  sensor_tvoc_reading = sgp.TVOC;
+  sensor_eco2_reading = sgp.eCO2;
 
 }
 
 
 
 
-void readMKR() {
-  temperature = ENV.readTemperature();
-  humidity    = ENV.readHumidity();
-  pressure    = ENV.readPressure();
-  illuminance = ENV.readIlluminance();
-  uva         = ENV.readUVA();
-  uvb         = ENV.readUVB();
-  uvIndex     = ENV.readUVIndex();
+///////////////////////////////////////////////////////////////////////////////////////////////
+void printTelemetry() {
+  Serial.println(F("------------------------------------------------------------"));
+  Serial.print(F("Time (ms) since last reboot: "));
+  Serial.println(millis());
+  Serial.println();
+
+  Serial.print(F(">> Environmental Conditions: "));
+  Serial.println();
+  Serial.print(F("Temperature (C): "));
+  Serial.println(sensor_temperature_reading);
+  Serial.print(F("Humidity (%): "));
+  Serial.println(sensor_humidity_reading);
+  Serial.print(F("Atmosphere Pressure (kPa): "));
+  Serial.println(sensor_pressure_reading);
+  Serial.print(F("Illuminance (Lux): "));
+  Serial.println(sensor_illuminance_reading);
+  Serial.print(F("UVA: "));
+  Serial.println(sensor_uva_reading);
+  Serial.print(F("UVB: "));
+  Serial.println(sensor_uvb_reading);
+  Serial.print(F("UV Index: "));
+  Serial.println(sensor_uvIndex_reading);
+  Serial.println();
+
+  Serial.print(F(">> Noise Level: "));
+  Serial.println(sensor_noiseLevel_reading);
+  Serial.println();
+
+  Serial.println(F(">> Air Quality: Particulate Matter"));
+  Serial.println(F("Concentration Units (standard)"));
+  Serial.print(F("PM 1.0: ")); Serial.print(aqiData.pm10_standard);
+  Serial.print(F("\t\tPM 2.5: ")); Serial.print(aqiData.pm25_standard);
+  Serial.print(F("\t\tPM 10: ")); Serial.println(aqiData.pm100_standard);
+  Serial.println(F("-----"));
+  Serial.println(F("Concentration Units (environmental)"));
+  Serial.print(F("PM 1.0: ")); Serial.print(aqiData.pm10_env);
+  Serial.print(F("\t\tPM 2.5: ")); Serial.print(aqiData.pm25_env);
+  Serial.print(F("\t\tPM 10: ")); Serial.println(aqiData.pm100_env);
+  Serial.println(F("-----"));
+  Serial.print(F("Particles > 0.3um / 0.1L air:")); Serial.println(sensor_partcount_03um_reading);
+  Serial.print(F("Particles > 0.5um / 0.1L air:")); Serial.println(sensor_partcount_05um_reading);
+  Serial.print(F("Particles > 1.0um / 0.1L air:")); Serial.println(sensor_partcount_10um_reading);
+  Serial.print(F("Particles > 2.5um / 0.1L air:")); Serial.println(sensor_partcount_25um_reading);
+  Serial.print(F("Particles > 5.0um / 0.1L air:")); Serial.println(sensor_partcount_50um_reading);
+  Serial.print(F("Particles > 50 um / 0.1L air:")); Serial.println(sensor_partcount_100um_reading);
+  Serial.println();
+
+  Serial.println(F(">> Air Quality: eCO2 and TVOC"));
+  Serial.print(F("eCO2: "));
+  Serial.println(sensor_eco2_reading);
+  Serial.print(F("TVOC: "));
+  Serial.println(sensor_tvoc_reading);
+  Serial.println();
+  Serial.println(F("------------------------------------------------------------"));
+
+  for (int x = 0; x < 3; x++) {
+    Serial.println();
+  }
+
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+void sendToThingspeak() {
+  // Connect or reconnect to WiFi
+  if ((millis() - lastTransmitTime) > transmitDelay) {
+    if (WiFi.status() != WL_CONNECTED) {
+      Serial.print("Attempting to connect to SSID: ");
+      Serial.println(SECRET_SSID);
+      while (WiFi.status() != WL_CONNECTED) {
+        WiFi.begin(ssid, pass); // Connect to WPA/WPA2 network. Change this line if using open or WEP network
+        Serial.print(".");
+        delay(5000);
+      }
+      Serial.println("\nConnected.");
+    }
+
+    // set the fields with the values
+    ThingSpeak.setField(1, sensor_temperature_reading);
+    ThingSpeak.setField(2, sensor_humidity_reading);
+    ThingSpeak.setField(3, sensor_pressure_reading);
+    ThingSpeak.setField(4, sensor_illuminance_reading);
+    ThingSpeak.setField(5, sensor_uvIndex_reading);
+    ThingSpeak.setField(6, sensor_noiseLevel_reading);
+    ThingSpeak.setField(7, sensor_partcount_25um_reading);
+    ThingSpeak.setField(8, sensor_eco2_reading);
+
+    // write to the ThingSpeak channel
+    int x = ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);
+    if (x == 200) {
+      Serial.println("Telemetry upload to ThingSpeak successful.");
+    }
+    else {
+      Serial.println("Problem updating channel. HTTP error code " + String(x));
+    }
+    lastTransmitTime = millis();
+  }
+}
+
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+void writeTelemetrySD() {
+  noInterrupts();
+  if ((millis() - lastSDWriteTime) > SDwriteDelay) {
+    myFile = SD.open(FILENAME, FILE_WRITE);
+    if (myFile)
+    {
+      myFile.print(sensor_temperature_reading);
+      myFile.print(",");
+      myFile.print(sensor_humidity_reading);
+      myFile.print(",");
+      myFile.print(sensor_pressure_reading);
+      myFile.print(",");
+      myFile.print(sensor_illuminance_reading);
+      myFile.print(",");
+      myFile.print(sensor_uva_reading);
+      myFile.print(",");
+      myFile.print(sensor_uvb_reading);
+      myFile.print(",");
+      myFile.print(sensor_uvIndex_reading);
+      myFile.print(",");
+      myFile.println(sensor_noiseLevel_reading);
+      myFile.print(",");
+      myFile.println(sensor_partcount_03um_reading);
+      myFile.print(",");
+      myFile.println(sensor_partcount_05um_reading);
+      myFile.print(",");
+      myFile.println(sensor_partcount_10um_reading);
+      myFile.print(",");
+      myFile.println(sensor_partcount_25um_reading);
+      myFile.print(",");
+      myFile.println(sensor_partcount_50um_reading);
+      myFile.print(",");
+      myFile.println(sensor_partcount_100um_reading);
+      myFile.print(",");
+      myFile.println(sensor_eco2_reading);
+      myFile.print(",");
+      myFile.println(sensor_tvoc_reading);
+      myFile.close();
+
+      Serial.println("Telemetry write to SD card is successful.");
+      lastSDWriteTime = millis();
+    }
+    else {
+      Serial.print("WARNING! SD Card problem. Error opening file: ");
+      Serial.println(FILENAME);
+    }
+
+
+  }
+  interrupts();
+}
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+void blinkLedError() {
+  WiFiDrv::digitalWrite(GREEN_LED, LOW); // for full brightness
+  WiFiDrv::digitalWrite(RED_LED, LOW); // for full brightness
+  WiFiDrv::digitalWrite(BLUE_LED, HIGH); // for full brightness
+  delay(1000);
+  WiFiDrv::digitalWrite(GREEN_LED, LOW); // for full brightness
+  WiFiDrv::digitalWrite(RED_LED, HIGH); // for full brightness
+  WiFiDrv::digitalWrite(BLUE_LED, LOW); // for full brightness
+  delay(1000);
 }

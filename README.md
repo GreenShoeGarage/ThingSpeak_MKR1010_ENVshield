@@ -27,10 +27,10 @@ Measure 8+ variables that affect the environmental quality of a room.... temp, h
     
 
 Bill of Materials
-Supplier	    Product ID	  Quantity	  Description	                                        Unit Price	  Function
----------------------------------------------------------------------------------------------------------------------------
-SparkFun	    DEV-15443   	1	          MKR1010	                                             $32.10 	    Processing	
-SparkFun	    SEN-14348	    1	          MKR ENV Shield	                                     $34.40 	    Temp, UVA/UVB/UV Index, Humidity, Pressure, Lux	
-Adafruit	    3709	        1	          SGP30 Air Quality Sensor Breakout	                   $19.95 	    VOC, eCO2	
-Adafruit	    4632	        1	          PMSA003I Air Quality Breakout - STEMMA QT / Qwiic	   $44.95 	    Particulate Matter
-Adafruit	    3421	        1	          I2S MEMS Microphone Breakout - SPH0645LM4H	         $6.95 	      Noise	
+Supplier	    Product ID	  Quantity Description	                               Unit Price	  Function
+
+SparkFun	    DEV-15443   	1	    MKR1010	                                    $32.10 	      Processing	
+SparkFun	    SEN-14348	    1	    MKR ENV Shield	                            $34.40 	      Temp, UVA/UVB/UV Index, Humidity, Pressure, Lux	
+Adafruit	    3709	        1	    SGP30 Air Quality Sensor Breakout	        $19.95 	      VOC, eCO2	
+Adafruit	    4632	        1	    PMSA003I Air Quality Breakout               $44.95 	      Particulate Matter
+Adafruit	    3421	        1	    I2S MEMS Microphone Breakout SPH0645LM4H    $6.95 	      Noise	

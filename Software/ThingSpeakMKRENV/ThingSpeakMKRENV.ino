@@ -109,6 +109,13 @@ File myFile;
 
 //////////////////////////////////////////////////////////////////////////
 void setup() {
+  WiFiDrv::pinMode(GREEN_LED, OUTPUT);  //GREEN
+  WiFiDrv::pinMode(RED_LED, OUTPUT);  //RED
+  WiFiDrv::pinMode(BLUE_LED, OUTPUT);  //BLUE
+  WiFiDrv::digitalWrite(GREEN_LED, HIGH); // for full brightness
+  WiFiDrv::digitalWrite(RED_LED, LOW); // for full brightness
+  WiFiDrv::digitalWrite(BLUE_LED, LOW); // for full brightness
+
   Serial.begin(115200);  // Initialize serial
   while (!Serial) {
     blinkLedError();
@@ -176,13 +183,6 @@ void setup() {
   Serial.println("SD card successfully initialized.");
 
   ThingSpeak.begin(client);  //Initialize ThingSpeak
-
-  WiFiDrv::pinMode(GREEN_LED, OUTPUT);  //GREEN
-  WiFiDrv::pinMode(RED_LED, OUTPUT);  //RED
-  WiFiDrv::pinMode(BLUE_LED, OUTPUT);  //BLUE
-  WiFiDrv::digitalWrite(GREEN_LED, HIGH); // for full brightness
-  WiFiDrv::digitalWrite(RED_LED, LOW); // for full brightness
-  WiFiDrv::digitalWrite(BLUE_LED, LOW); // for full brightness
 }
 
 

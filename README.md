@@ -1,6 +1,7 @@
-# Workspace Health Monitoring Gadget
+### Workspace Health Monitoring Gadget
 
-**GOAL**:  An open-source device that can monitor 6 key environmental factors that affect people's perception of a healthy and productive workspace:
+## Goal
+An open-source device that can monitor 6 key environmental factors that affect people's perception of a healthy and productive workspace:
 
 - Temperature
 - Pressure
@@ -13,7 +14,7 @@
 
 Measure 8+ variables that affect the environmental quality of a room.... temp, humidity, atmospheric pressure, lux, eCO2, VOC, particulate matter, sound/noise level. Pack it up and send it to a website for remote monitoring. Wanted something a bit more rugged than a breadboard as I start testing it. Next phase is learning from real world environment and lots of code cleanup... 'clooged' together a lot of example code, now I want to write something more usable and maintainable.
 
-### Functionality
+## Functionality
 
 1. Monitor 6 environmental factors
     1. Central processing of all sensor data
@@ -23,7 +24,7 @@ Measure 8+ variables that affect the environmental quality of a room.... temp, h
     1. Display new data point every 3 seconds
     
 
-Bill of Materials
+## Bill of Materials
 Supplier | Product ID | Quantity Description | Unit Price | Function
 --- | --- | --- | --- | ---
 Mouser | 782-ABX00023 | 1 | MKR1010 | $32.10 | Processing and Comms	

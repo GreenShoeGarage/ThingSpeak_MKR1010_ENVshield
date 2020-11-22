@@ -12,16 +12,17 @@ An open-source device that can monitor 6 key environmental factors that affect p
 - TVOC
 - PM 2.5um
 
-Measure 8+ variables that affect the environmental quality of a room.... temp, humidity, atmospheric pressure, lux, eCO2, VOC, particulate matter, sound/noise level. Pack it up and send it to a website for remote monitoring. Wanted something a bit more rugged than a breadboard as I start testing it. Next phase is learning from real world environment and lots of code cleanup... 'clooged' together a lot of example code, now I want to write something more usable and maintainable.
+Measure 8+ factors that affect the environmental quality of a room.... temp, humidity, atmospheric pressure, lux, eCO2, VOC, particulate matter, sound/noise level. Pack it up and send it to a website for remote monitoring. Wanted something a bit more rugged than a breadboard as I start testing it. Next phase is learning from real world environment and lots of code cleanup... 'clooged' together a lot of example code, now I want to write something more usable and maintainable.
 
 ## Functionality
 
-1. Monitor 6 environmental factors
+1. Monitor multiple environmental factors
     1. Central processing of all sensor data
 2. Record the telemetry locally
     1. 24-hour rolling log
 3. Display the telemetry locally
     1. Display new data point every 3 seconds
+4. Transmit telemetry to web-based cloud service
     
 
 ## Bill of Materials

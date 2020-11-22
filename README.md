@@ -1,8 +1,5 @@
 # Workspace Health Monitoring Gadget
 
-Get the PCB from OSHPark:
-https://oshpark.com/shared_projects/NU4I8Xzd
-
 **GOAL**:  An open-source device that can monitor 6 key environmental factors that affect people's perception of a healthy and productive workspace:
 
 - Temperature
@@ -34,3 +31,6 @@ Mouser | 782-ASX00011 | 1 | MKR ENV Shield | $34.40 | Temp | UVA/UVB/UV Index, H
 Adafruit | 3709 |1 | SGP30 Air Quality Sensor Breakout | $19.95 | VOC, eCO2	
 Adafruit | 4632 | 1 |PMSA003I Air Quality Breakout | $44.95 | Particulate Matter
 Adafruit | 421|  1 | I2S MEMS Microphone Breakout SPH0645LM4H | $6.95 | Noise
+
+Get the PCB from OSHPark:
+https://oshpark.com/shared_projects/NU4I8Xzd

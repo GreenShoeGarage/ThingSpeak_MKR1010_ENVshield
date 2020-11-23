@@ -29,8 +29,8 @@ Measure 8+ factors that affect the environmental quality of a room.... temp, hum
     
 
 ## Bill of Materials
-Supplier | Product ID | Quantity Description | Unit Price | Function
---- | --- | --- | --- | ---
+Supplier | Product ID | Quantity | Description | Unit Price | Function
+--- | --- | --- | --- | --- | ---
 Mouser | 782-ABX00023 | 1 | MKR1010 | $32.10 | Processing and Comms	
 Mouser | 782-ASX00011 | 1 | MKR ENV Shield | $34.40 | Temp | UVA/UVB/UV Index, Humidity, Pressure, Lux	
 Adafruit | 3709 |1 | SGP30 Air Quality Sensor Breakout | $19.95 | VOC, eCO2	

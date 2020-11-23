@@ -17,13 +17,15 @@ An open-source device that can monitor 8+ key environmental factors that affect 
 
 ## Functionality
 
-1. Monitor multiple environmental factors
+1. Monitor 8 environmental factors
     1. Central processing of all sensor data
 2. Record the telemetry locally
     1. 24-hour rolling log
+    2. Store on microSD card
 3. Display the telemetry locally
     1. Display new data point every 3 seconds
 4. Transmit telemetry to web-based cloud service
+    1. Send latest sensor readings every 10 minutes
     
 
 ## Bill of Materials

@@ -13,8 +13,6 @@ An open-source device that can monitor 8+ key environmental factors that affect 
 - TVOC
 - PM 2.5um
 
-Measure 8+ factors that affect the environmental quality of a room.... temp, humidity, atmospheric pressure, lux, eCO2, VOC, particulate matter, sound/noise level. Pack it up and send it to a website for remote monitoring. Wanted something a bit more rugged than a breadboard as I start testing it. Next phase is learning from real world environment and lots of code cleanup... 'clooged' together a lot of example code, now I want to write something more usable and maintainable.
-
 ### Code and hardware is a prototype, no guarentee of any sort is implied. Use at your own risk.
 
 ## Functionality

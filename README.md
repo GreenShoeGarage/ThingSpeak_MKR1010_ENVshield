@@ -2,7 +2,7 @@
 https://greenshoegarage.com/2020/10/learning-from-covid-19/
 
 ## Goal
-An open-source device that can monitor 6 key environmental factors that affect people's perception of a healthy and productive workspace:
+An open-source device that can monitor 8+ key environmental factors that affect people's perception of a healthy and productive workspace:
 
 - Temperature
 - Pressure

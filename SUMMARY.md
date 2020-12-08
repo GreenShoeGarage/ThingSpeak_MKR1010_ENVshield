@@ -1,4 +1,4 @@
 # Table of contents
 
-* [WHMG Homepage](README.md)
+* [Workspace Health Monitoring Gadget](README.md)
 

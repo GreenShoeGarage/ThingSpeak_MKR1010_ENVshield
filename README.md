@@ -1,7 +1,5 @@
 ---
-description: >-
-  Documentation for the Workspace Health Monitoring Gadget:
-  https://github.com/GreenShoeGarage/WorkspaceHealthMonitoring/wiki
+description: 'https://github.com/GreenShoeGarage/WorkspaceHealthMonitoring'
 ---
 
 # WHMG Homepage
@@ -48,4 +46,6 @@ An open-source device that can monitor 8+ key environmental factors that affect 
 | Adafruit | 421 | 1 | I2S MEMS Microphone Breakout SPH0645LM4H | $6.95 | Noise |  |
 
 Get the PCB from OSHPark: [https://oshpark.com/shared\_projects/NU4I8Xzd](https://oshpark.com/shared_projects/NU4I8Xzd)
+
+PartsBox Project BOM: [https://partsbox.com/mbparks/project/1s51nh9teghyx9e4by3gwn3nxp/](https://partsbox.com/mbparks/project/1s51nh9teghyx9e4by3gwn3nxp/)
 

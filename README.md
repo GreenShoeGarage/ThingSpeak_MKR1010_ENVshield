@@ -39,3 +39,5 @@ Adafruit | 421|  1 | I2S MEMS Microphone Breakout SPH0645LM4H | $6.95 | Noise
 
 Get the PCB from OSHPark:
 https://oshpark.com/shared_projects/NU4I8Xzd
+
+PartsBox Project BOM: https://partsbox.com/mbparks/project/1s51nh9teghyx9e4by3gwn3nxp/

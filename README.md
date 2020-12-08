@@ -1,10 +1,4 @@
----
-description: 'https://github.com/GreenShoeGarage/WorkspaceHealthMonitoring'
----
-
-# WHMG Homepage
-
-### Workspace Health Monitoring Gadget
+# Workspace Health Monitoring Gadget
 
 [https://greenshoegarage.com/2020/10/learning-from-covid-19/](https://greenshoegarage.com/2020/10/learning-from-covid-19/)
 

@@ -87,10 +87,10 @@ PM25_AQI_Data aqiData;
 Adafruit_SGP30 sgp;
 
 unsigned long lastSDWriteTime = 0;
-const unsigned long SDwriteDelay = 60000;
+const unsigned long SDwriteDelay = 5000;
 
 unsigned long lastTransmitTime = 0;
-const unsigned long transmitDelay = 60000;
+const unsigned long transmitDelay = 5000;
 
 char ssid[] = SECRET_SSID;   // your network SSID (name)
 char pass[] = SECRET_PASS;   // your network password
@@ -411,7 +411,7 @@ void sendToThingspeak() {
     ThingSpeak.setField(2, sensor_humidity_reading);
     ThingSpeak.setField(3, sensor_pressure_reading);
     ThingSpeak.setField(4, sensor_illuminance_reading);
-    ThingSpeak.setField(5, sensor_uvIndex_reading);
+    ThingSpeak.setField(5, sensor_tvoc_reading);
     ThingSpeak.setField(6, sensor_noiseLevel_reading);
     ThingSpeak.setField(7, sensor_partcount_25um_reading);
     ThingSpeak.setField(8, sensor_eco2_reading);
